@@ -3,102 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Xenzia</title>
+    <title>Tic Tac Toe</title>
     <style>
-        #game-board {
-            width: 300px;
-            height: 300px;
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 2px;
+            width: 306px;
+            margin: 0 auto;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 36px;
             border: 1px solid #000;
-            position: relative;
-        }
-        .snake {
-            width: 20px;
-            height: 20px;
-            background-color: green;
-            position: absolute;
-        }
-        .food {
-            width: 20px;
-            height: 20px;
-            background-color: red;
-            position: absolute;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>Snake Xenzia</h1>
-    <div id="game-board"></div>
+    <h1>Tic Tac Toe</h1>
+    <div class="board" id="board">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+    </div>
+    <p id="status">Player X's turn</p>
+
     <script>
-        const gameBoard = document.getElementById('game-board');
-        let snake = [{ x: 10, y: 10 }];
-        let food = { x: 5, y: 5 };
-        let direction = 'right';
+        const board = document.getElementById('board');
+        const cells = document.querySelectorAll('.cell');
+        const status = document.getElementById('status');
+        let currentPlayer = 'X';
+        let gameBoard = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
 
-        function drawSnake() {
-            gameBoard.innerHTML = '';
-            snake.forEach(segment => {
-                const snakeSegment = document.createElement('div');
-                snakeSegment.classList.add('snake');
-                snakeSegment.style.left = `${segment.x * 20}px`;
-                snakeSegment.style.top = `${segment.y * 20}px`;
-                gameBoard.appendChild(snakeSegment);
-            });
-        }
+        function checkWinner() {
+            const winPatterns = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
 
-        function drawFood() {
-            const foodElement = document.createElement('div');
-            foodElement.classList.add('food');
-            foodElement.style.left = `${food.x * 20}px`;
-            foodElement.style.top = `${food.y * 20}px`;
-            gameBoard.appendChild(foodElement);
-        }
-
-        function update() {
-            // Move the snake
-            const head = Object.assign({}, snake[0]); // Create a new head
-            if (direction === 'right') head.x++;
-            if (direction === 'left') head.x--;
-            if (direction === 'down') head.y++;
-            if (direction === 'up') head.y--;
-
-            snake.unshift(head); // Add the new head to the snake
-            if (head.x === food.x && head.y === food.y) {
-                // Snake ate the food
-                food = { x: Math.floor(Math.random() * 15), y: Math.floor(Math.random() * 15) };
-            } else {
-                snake.pop(); // Remove the tail segment
-            }
-
-            // Check for game over conditions
-            if (head.x < 0 || head.x >= 15 || head.y < 0 || head.y >= 15) {
-                clearInterval(gameLoop);
-                alert('Game Over!');
-            }
-
-            // Check for collision with self
-            for (let i = 1; i < snake.length; i++) {
-                if (head.x === snake[i].x && head.y === snake[i].y) {
-                    clearInterval(gameLoop);
-                    alert('Game Over!');
+            for (const pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+                    gameActive = false;
+                    status.textContent = `Player ${currentPlayer} wins!`;
+                    cells[a].style.backgroundColor = 'lightgreen';
+                    cells[b].style.backgroundColor = 'lightgreen';
+                    cells[c].style.backgroundColor = 'lightgreen';
                     break;
                 }
             }
 
-            drawSnake();
-            drawFood();
+            if (!gameBoard.includes('') && gameActive) {
+                gameActive = false;
+                status.textContent = "It's a draw!";
+            }
         }
 
-        // Handle keyboard input to change direction
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp' && direction !== 'down') direction = 'up';
-            if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down';
-            if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left';
-            if (e.key === 'ArrowRight' && direction !== 'left') direction = 'right';
+        function handleCellClick(event) {
+            const cell = event.target;
+            const index = cell.getAttribute('data-index');
+
+            if (gameBoard[index] === '' && gameActive) {
+                gameBoard[index] = currentPlayer;
+                cell.textContent = currentPlayer;
+                cell.style.backgroundColor = 'lightgray';
+
+                checkWinner();
+
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                status.textContent = `Player ${currentPlayer}'s turn`;
+            }
+        }
+
+        function restartGame() {
+            gameBoard = ['', '', '', '', '', '', '', '', ''];
+            gameActive = true;
+            currentPlayer = 'X';
+            status.textContent = `Player ${currentPlayer}'s turn`;
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.style.backgroundColor = '';
+            });
+        }
+
+        cells.forEach(cell => {
+            cell.addEventListener('click', handleCellClick);
         });
 
-        drawSnake();
-        drawFood();
-        const gameLoop = setInterval(update, 200);
+        document.getElementById('restart-button').addEventListener('click', restartGame);
     </script>
+    <button id="restart-button">Restart Game</button>
 </body>
 </html>
