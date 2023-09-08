@@ -1,9 +1,104 @@
-<html>
-	<body>
-		<h1> Welcome da mapla </h1>
-		<h2> vetri </h2>
-		<h3> project done</h3>
-		<h4> varta mamey durr!</h4>
-		<h5>Anto weds shillu</h5>
-	</body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Xenzia</title>
+    <style>
+        #game-board {
+            width: 300px;
+            height: 300px;
+            border: 1px solid #000;
+            position: relative;
+        }
+        .snake {
+            width: 20px;
+            height: 20px;
+            background-color: green;
+            position: absolute;
+        }
+        .food {
+            width: 20px;
+            height: 20px;
+            background-color: red;
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <h1>Snake Xenzia</h1>
+    <div id="game-board"></div>
+    <script>
+        const gameBoard = document.getElementById('game-board');
+        let snake = [{ x: 10, y: 10 }];
+        let food = { x: 5, y: 5 };
+        let direction = 'right';
+
+        function drawSnake() {
+            gameBoard.innerHTML = '';
+            snake.forEach(segment => {
+                const snakeSegment = document.createElement('div');
+                snakeSegment.classList.add('snake');
+                snakeSegment.style.left = `${segment.x * 20}px`;
+                snakeSegment.style.top = `${segment.y * 20}px`;
+                gameBoard.appendChild(snakeSegment);
+            });
+        }
+
+        function drawFood() {
+            const foodElement = document.createElement('div');
+            foodElement.classList.add('food');
+            foodElement.style.left = `${food.x * 20}px`;
+            foodElement.style.top = `${food.y * 20}px`;
+            gameBoard.appendChild(foodElement);
+        }
+
+        function update() {
+            // Move the snake
+            const head = Object.assign({}, snake[0]); // Create a new head
+            if (direction === 'right') head.x++;
+            if (direction === 'left') head.x--;
+            if (direction === 'down') head.y++;
+            if (direction === 'up') head.y--;
+
+            snake.unshift(head); // Add the new head to the snake
+            if (head.x === food.x && head.y === food.y) {
+                // Snake ate the food
+                food = { x: Math.floor(Math.random() * 15), y: Math.floor(Math.random() * 15) };
+            } else {
+                snake.pop(); // Remove the tail segment
+            }
+
+            // Check for game over conditions
+            if (head.x < 0 || head.x >= 15 || head.y < 0 || head.y >= 15) {
+                clearInterval(gameLoop);
+                alert('Game Over!');
+            }
+
+            // Check for collision with self
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    clearInterval(gameLoop);
+                    alert('Game Over!');
+                    break;
+                }
+            }
+
+            drawSnake();
+            drawFood();
+        }
+
+        // Handle keyboard input to change direction
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' && direction !== 'down') direction = 'up';
+            if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down';
+            if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left';
+            if (e.key === 'ArrowRight' && direction !== 'left') direction = 'right';
+        });
+
+        drawSnake();
+        drawFood();
+        const gameLoop = setInterval(update, 200);
+    </script>
+</body>
 </html>
